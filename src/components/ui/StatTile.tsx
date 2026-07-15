@@ -1,4 +1,4 @@
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, useWindowDimensions, View } from 'react-native';
 
 interface StatTileProps {
   label: string;
@@ -7,14 +7,18 @@ interface StatTileProps {
 }
 
 export function StatTile({ label, value, onPress }: StatTileProps) {
+  const { width } = useWindowDimensions();
+  // 2 columns with 16px padding on each side and 12px gap
+  const tileWidth = (width - 32 - 12) / 2;
+
   const content = (
-    <View className="flex-1 rounded-xl border border-gray-100 bg-white p-4">
+    <View style={{ width: tileWidth }} className="rounded-xl border border-gray-100 bg-white p-4">
       <Text className="text-2xl font-semibold text-gray-900">{value}</Text>
       <Text className="mt-1 text-xs text-gray-500">{label}</Text>
     </View>
   );
   if (onPress) {
-    return <Pressable onPress={onPress}>{content}</Pressable>;
+    return <Pressable onPress={onPress} style={{ width: tileWidth }}>{content}</Pressable>;
   }
   return content;
 }

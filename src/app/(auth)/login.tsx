@@ -127,7 +127,8 @@ export default function LoginScreen() {
       <ScrollView contentContainerClassName="flex-1 justify-center px-6 py-12" keyboardShouldPersistTaps="handled">
         <Image
           source={require('../../assets/nivah-logo.png')}
-          className="mb-8 h-14 w-52 self-center"
+          className="mb-6 self-center"
+          style={{ height: 40, width: 140 }}
           resizeMode="contain"
         />
 

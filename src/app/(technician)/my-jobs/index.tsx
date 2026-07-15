@@ -80,9 +80,10 @@ export default function MyJobsScreen() {
             <Pressable
               key={tab.label}
               onPress={() => setActiveTab(index)}
-              className={`rounded-full px-3 py-1.5 ${activeTab === index ? 'bg-brand' : 'bg-white border border-gray-200'}`}
+              style={{ backgroundColor: activeTab === index ? '#025F30' : '#fff', borderWidth: activeTab === index ? 0 : 1, borderColor: '#e5e7eb' }}
+              className="rounded-full px-3 py-1.5"
             >
-              <Text className={`text-xs font-medium ${activeTab === index ? 'text-white' : 'text-gray-600'}`}>{tab.label}</Text>
+              <Text style={{ color: activeTab === index ? '#fff' : '#4b5563' }} className="text-xs font-medium">{tab.label}</Text>
             </Pressable>
           ))}
         </ScrollView>
