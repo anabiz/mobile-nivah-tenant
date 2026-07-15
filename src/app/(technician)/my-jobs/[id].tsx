@@ -14,8 +14,11 @@ import { formatDateTime, formatNaira } from '@/lib/format';
 import { toast } from '@/lib/toast';
 import {
   AttachmentDto,
+  COST_PAID_BY,
+  COST_TYPE,
   MaintenanceCommentDto,
   MaintenanceCostItemDto,
+  MaintenanceInvoiceDto,
   MaintenanceRequestDto,
   PRIORITY_COLORS,
   PRIORITY_LABELS,
@@ -53,6 +56,8 @@ export default function JobDetailScreen() {
 
   const [costDesc, setCostDesc] = useState('');
   const [costAmount, setCostAmount] = useState('');
+  const [costPaidBy, setCostPaidBy] = useState(1);
+  const [costTypeVal, setCostTypeVal] = useState(1);
   const [isAddingCost, setIsAddingCost] = useState(false);
 
   const [newComment, setNewComment] = useState('');
@@ -160,9 +165,11 @@ export default function JobDetailScreen() {
     }
     setIsAddingCost(true);
     try {
-      await maintenanceService.addCostItem(id, { description: costDesc, amount: parseFloat(costAmount) });
+      await maintenanceService.addCostItem(id, { description: costDesc, amount: parseFloat(costAmount), paidBy: costPaidBy, costType: costTypeVal });
       setCostDesc('');
       setCostAmount('');
+      setCostPaidBy(1);
+      setCostTypeVal(1);
       const res = await maintenanceService.getCostItems(id);
       if (res.success) setCostItems(res.data);
     } catch (err) {
@@ -308,9 +315,15 @@ export default function JobDetailScreen() {
               <Text className="text-sm text-gray-500">No cost items recorded.</Text>
             ) : (
               costItems.map((item) => (
-                <View key={item.id} className="flex-row items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
-                  <Text className="text-sm text-gray-700">{item.description}</Text>
-                  <Text className="text-sm font-medium text-gray-900">{formatNaira(item.amount)}</Text>
+                <View key={item.id} className="rounded-lg bg-gray-50 px-3 py-2 gap-1">
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-sm text-gray-700">{item.description}</Text>
+                    <Text className="text-sm font-medium text-gray-900">{formatNaira(item.amount)}</Text>
+                  </View>
+                  <View className="flex-row gap-2">
+                    <Text className="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 text-gray-600">{COST_TYPE[item.costType] || 'Other'}</Text>
+                    <Text className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">{COST_PAID_BY[item.paidBy] || 'Management'}</Text>
+                  </View>
                 </View>
               ))
             )}
@@ -318,6 +331,28 @@ export default function JobDetailScreen() {
               <View className="gap-2 border-t border-gray-100 pt-2">
                 <FormInput placeholder="Description" value={costDesc} onChangeText={setCostDesc} />
                 <FormInput placeholder="Amount" value={costAmount} onChangeText={setCostAmount} keyboardType="numeric" />
+                <View className="flex-row gap-2">
+                  <View className="flex-1">
+                    <Text className="text-xs text-gray-500 mb-1">Paid By</Text>
+                    <View className="flex-row gap-1">
+                      {[{ v: 1, l: 'Management' }, { v: 2, l: 'Tenant' }].map(o => (
+                        <Pressable key={o.v} onPress={() => setCostPaidBy(o.v)} className={`flex-1 py-2 rounded-lg items-center ${costPaidBy === o.v ? 'bg-brand' : 'bg-gray-100'}`}>
+                          <Text className={`text-xs font-medium ${costPaidBy === o.v ? 'text-white' : 'text-gray-600'}`}>{o.l}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-xs text-gray-500 mb-1">Type</Text>
+                    <View className="flex-row gap-1">
+                      {[{ v: 1, l: 'Material' }, { v: 2, l: 'Labour' }, { v: 3, l: 'Other' }].map(o => (
+                        <Pressable key={o.v} onPress={() => setCostTypeVal(o.v)} className={`flex-1 py-2 rounded-lg items-center ${costTypeVal === o.v ? 'bg-brand' : 'bg-gray-100'}`}>
+                          <Text className={`text-xs font-medium ${costTypeVal === o.v ? 'text-white' : 'text-gray-600'}`}>{o.l}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                </View>
                 <Button label={isAddingCost ? 'Adding...' : 'Add'} onPress={handleAddCost} loading={isAddingCost} />
               </View>
             )}

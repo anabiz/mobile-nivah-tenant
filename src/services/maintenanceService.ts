@@ -24,6 +24,7 @@ export interface MaintenanceRequestDto {
   totalCost: number;
   resolvedAt?: string | null;
   closedAt?: string | null;
+  costsFinalized?: boolean;
   createdAt: string;
   slaResolutionDueAt?: string | null;
 }
@@ -83,6 +84,8 @@ export interface MaintenanceCostItemDto {
   maintenanceRequestId: string;
   description: string;
   amount: number;
+  paidBy: number;
+  costType: number;
   createdAt: string;
 }
 
@@ -102,6 +105,30 @@ export interface RNFile {
   name: string;
   type: string;
 }
+
+export interface MaintenanceInvoiceDto {
+  id: string;
+  maintenanceRequestId: string;
+  invoiceNumber: string;
+  amount: number;
+  description?: string | null;
+  invoiceFileUrl?: string | null;
+  status: string;
+  statusId: number;
+  billedTo: string;
+  billedToId: number;
+  paymentProofUrl?: string | null;
+  paidAt?: string | null;
+  paidByName?: string | null;
+  rejectionReason?: string | null;
+  uploadedByName?: string | null;
+  ticketNumber?: string | null;
+  requestTitle?: string | null;
+  createdAt: string;
+}
+
+export const COST_PAID_BY: Record<number, string> = { 1: 'Management', 2: 'Tenant' };
+export const COST_TYPE: Record<number, string> = { 1: 'Material', 2: 'Labour', 3: 'Other' };
 
 // Ported verbatim from fe-nivah-tenant-web/services/maintenanceService.ts.
 export const PRIORITY_LABELS: Record<number, string> = { 1: 'Low', 2: 'Medium', 3: 'High', 4: 'Critical' };
@@ -302,13 +329,29 @@ export const maintenanceService = {
     return response.data;
   },
 
-  async addCostItem(id: string, data: { description: string; amount: number }): Promise<ApiResponse<MaintenanceCostItemDto>> {
+  async addCostItem(id: string, data: { description: string; amount: number; paidBy: number; costType: number }): Promise<ApiResponse<MaintenanceCostItemDto>> {
     const response = await apiClient.post<ApiResponse<MaintenanceCostItemDto>>(`/api/v1/MaintenanceRequest/${id}/cost-items`, data);
     return response.data;
   },
 
   async getCostItems(id: string): Promise<ApiResponse<MaintenanceCostItemDto[]>> {
     const response = await apiClient.get<ApiResponse<MaintenanceCostItemDto[]>>(`/api/v1/MaintenanceRequest/${id}/cost-items`);
+    return response.data;
+  },
+
+  // Maintenance Invoice methods
+  async getMyMaintenanceInvoices(): Promise<ApiResponse<MaintenanceInvoiceDto[]>> {
+    const response = await apiClient.get<ApiResponse<MaintenanceInvoiceDto[]>>('/api/v1/MaintenanceInvoice/my-invoices');
+    return response.data;
+  },
+
+  async getInvoices(requestId: string): Promise<ApiResponse<MaintenanceInvoiceDto[]>> {
+    const response = await apiClient.get<ApiResponse<MaintenanceInvoiceDto[]>>(`/api/v1/MaintenanceInvoice/${requestId}`);
+    return response.data;
+  },
+
+  async finalizeCosts(requestId: string): Promise<ApiResponse<MaintenanceInvoiceDto[]>> {
+    const response = await apiClient.post<ApiResponse<MaintenanceInvoiceDto[]>>(`/api/v1/MaintenanceInvoice/${requestId}/finalize`);
     return response.data;
   },
 };

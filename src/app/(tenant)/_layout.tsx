@@ -23,8 +23,12 @@ export default function TenantTabsLayout() {
         options={{ title: 'My Leases', tabBarIcon: ({ color }) => <TabIcon emoji="📄" color={color} /> }}
       />
       <Tabs.Screen
+        name="my-invoices"
+        options={{ title: 'Invoices', tabBarIcon: ({ color }) => <TabIcon emoji="💰" color={color} /> }}
+      />
+      <Tabs.Screen
         name="my-requests"
-        options={{ title: 'My Requests', tabBarIcon: ({ color }) => <TabIcon emoji="🔧" color={color} /> }}
+        options={{ title: 'Requests', tabBarIcon: ({ color }) => <TabIcon emoji="🔧" color={color} /> }}
       />
       <Tabs.Screen
         name="profile"
