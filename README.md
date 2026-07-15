@@ -1,56 +1,54 @@
-# Welcome to your Expo app 👋
+# Nivah Properties — Tenant & Technician Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Expo (managed) + TypeScript + expo-router + NativeWind, talking to the same backend as
+`fe-nivah-tenant-web` (`be-nivah-properties`). Covers the Tenant role (Dashboard, My Leases, My
+Requests) and the Technician role (My Jobs) — the same two roles that app serves, not the admin
+staff portal and not the separate Contractor/vendor-portal RFQ flow.
 
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Setup
 
 ```bash
-npm run reset-project
+pnpm install --node-linker=hoisted
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+**Use `--node-linker=hoisted` on the very first install.** pnpm's default "isolated"
+`node_modules` layout (packages symlinked out of a central `.pnpm` store) breaks Metro's module
+resolution for packages that resolve their own dependencies via subpath exports — concretely,
+`nativewind` fails to resolve `react-native-css-interop/jsx-runtime` and every screen throws on
+bundle. The project's `.npmrc` also sets `node-linker=hoisted`, but in practice `pnpm install`
+without the explicit flag did not reliably apply it (a corepack/pnpm quirk on this setup) — the
+CLI flag is what actually works. Once applied on a fresh `node_modules`, subsequent plain
+`pnpm install` runs preserve the hoisted layout correctly.
 
-### Other setup steps
+Copy `.env.example` to `.env` and point `EXPO_PUBLIC_API_BASE_URL` at your backend.
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Run
 
-## Learn more
+```bash
+npx expo start          # then press `i`/`a`/`w`, or scan the QR code with Expo Go
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+## Structure
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- `src/app/(auth)/login.tsx` — password login (with 2FA-OTP follow-up) and standalone OTP login,
+  against the same `/api/v1/auths/*` endpoints as the web app.
+- `src/app/(tenant)/` — Dashboard, My Leases (list/detail/renewal/pay), My Requests
+  (list/detail/create), Profile.
+- `src/app/(technician)/` — My Jobs (list/detail with Start Work, Submit Investigation, Mark
+  Complete), Profile.
+- `src/services/` — ported line-for-line from `fe-nivah-tenant-web/services/*.ts` (same DTOs,
+  same status/priority/SLA color maps, same endpoints) so the mobile app stays in contract lockstep
+  with the web app and the backend.
+- `src/lib/api.ts` — axios client mirroring the web app's `lib/axios.ts` interceptor behavior
+  (bearer token, refresh-token mutex with 2-failure logout), but backed by `expo-secure-store`
+  instead of `localStorage`.
 
-## Join the community
+## Known gaps (intentionally out of scope for this pass)
 
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- No push notifications (no FCM/APNs integration exists on the backend yet — only email and
+  SignalR, and SignalR only delivers while the socket is alive). Screens use pull-to-refresh /
+  refetch-on-focus instead.
+- Lease payment opens the Paystack checkout URL in the system browser (`expo-web-browser`) but
+  doesn't intercept the return callback — return to the app manually and pull to refresh.
+- Everything else in the web app (visitor passes, amenity bookings, documents, announcements page,
+  move requests, feedback, KYC, vendor-portal) isn't built yet.
