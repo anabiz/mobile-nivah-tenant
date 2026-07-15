@@ -24,6 +24,7 @@ function RootNavigator() {
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
       <Stack.Protected guard={!!user && user.currentRole === 'Tenant'}>
         <Stack.Screen name="(tenant)" />
       </Stack.Protected>
