@@ -18,7 +18,6 @@ import {
   COST_TYPE,
   MaintenanceCommentDto,
   MaintenanceCostItemDto,
-  MaintenanceInvoiceDto,
   MaintenanceRequestDto,
   PRIORITY_COLORS,
   PRIORITY_LABELS,
@@ -214,8 +213,8 @@ export default function JobDetailScreen() {
 
       <View className="flex-row border-b border-gray-200 bg-white">
         {(['details', 'costs', 'comments'] as Tab[]).map((t) => (
-          <Pressable key={t} onPress={() => setTab(t)} className={`flex-1 items-center py-3 ${tab === t ? 'border-b-2 border-brand' : ''}`}>
-            <Text className={`text-sm capitalize ${tab === t ? 'font-medium text-brand' : 'text-gray-500'}`}>{t}</Text>
+          <Pressable key={t} onPress={() => setTab(t)} className="flex-1 items-center py-3" style={{ borderBottomWidth: tab === t ? 2 : 0, borderBottomColor: '#025F30' }}>
+            <Text style={{ color: tab === t ? '#025F30' : '#6b7280', fontWeight: tab === t ? '500' : '400' }} className="text-sm capitalize">{t}</Text>
           </Pressable>
         ))}
       </View>
@@ -321,8 +320,12 @@ export default function JobDetailScreen() {
                     <Text className="text-sm font-medium text-gray-900">{formatNaira(item.amount)}</Text>
                   </View>
                   <View className="flex-row gap-2">
-                    <Text className="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 text-gray-600">{COST_TYPE[item.costType] || 'Other'}</Text>
-                    <Text className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">{COST_PAID_BY[item.paidBy] || 'Management'}</Text>
+                    <View className="rounded bg-gray-200 px-1.5 py-0.5">
+                      <Text className="text-[10px] text-gray-600">{COST_TYPE[item.costType] || 'Other'}</Text>
+                    </View>
+                    <View className="rounded bg-blue-50 px-1.5 py-0.5">
+                      <Text className="text-[10px] text-blue-700">{COST_PAID_BY[item.paidBy] || 'Management'}</Text>
+                    </View>
                   </View>
                 </View>
               ))
@@ -335,21 +338,26 @@ export default function JobDetailScreen() {
                   <View className="flex-1">
                     <Text className="text-xs text-gray-500 mb-1">Paid By</Text>
                     <View className="flex-row gap-1">
-                      {[{ v: 1, l: 'Management' }, { v: 2, l: 'Tenant' }].map(o => (
-                        <Pressable key={o.v} onPress={() => setCostPaidBy(o.v)} className={`flex-1 py-2 rounded-lg items-center ${costPaidBy === o.v ? 'bg-brand' : 'bg-gray-100'}`}>
-                          <Text className={`text-xs font-medium ${costPaidBy === o.v ? 'text-white' : 'text-gray-600'}`}>{o.l}</Text>
-                        </Pressable>
-                      ))}
+                      <Pressable onPress={() => setCostPaidBy(1)} style={{ backgroundColor: costPaidBy === 1 ? '#025F30' : '#f3f4f6' }} className="flex-1 py-2 rounded-lg items-center">
+                        <Text style={{ color: costPaidBy === 1 ? '#fff' : '#4b5563' }} className="text-xs font-medium">Management</Text>
+                      </Pressable>
+                      <Pressable onPress={() => setCostPaidBy(2)} style={{ backgroundColor: costPaidBy === 2 ? '#025F30' : '#f3f4f6' }} className="flex-1 py-2 rounded-lg items-center">
+                        <Text style={{ color: costPaidBy === 2 ? '#fff' : '#4b5563' }} className="text-xs font-medium">Tenant</Text>
+                      </Pressable>
                     </View>
                   </View>
                   <View className="flex-1">
                     <Text className="text-xs text-gray-500 mb-1">Type</Text>
                     <View className="flex-row gap-1">
-                      {[{ v: 1, l: 'Material' }, { v: 2, l: 'Labour' }, { v: 3, l: 'Other' }].map(o => (
-                        <Pressable key={o.v} onPress={() => setCostTypeVal(o.v)} className={`flex-1 py-2 rounded-lg items-center ${costTypeVal === o.v ? 'bg-brand' : 'bg-gray-100'}`}>
-                          <Text className={`text-xs font-medium ${costTypeVal === o.v ? 'text-white' : 'text-gray-600'}`}>{o.l}</Text>
-                        </Pressable>
-                      ))}
+                      <Pressable onPress={() => setCostTypeVal(1)} style={{ backgroundColor: costTypeVal === 1 ? '#025F30' : '#f3f4f6' }} className="flex-1 py-2 rounded-lg items-center">
+                        <Text style={{ color: costTypeVal === 1 ? '#fff' : '#4b5563' }} className="text-xs font-medium">Material</Text>
+                      </Pressable>
+                      <Pressable onPress={() => setCostTypeVal(2)} style={{ backgroundColor: costTypeVal === 2 ? '#025F30' : '#f3f4f6' }} className="flex-1 py-2 rounded-lg items-center">
+                        <Text style={{ color: costTypeVal === 2 ? '#fff' : '#4b5563' }} className="text-xs font-medium">Labour</Text>
+                      </Pressable>
+                      <Pressable onPress={() => setCostTypeVal(3)} style={{ backgroundColor: costTypeVal === 3 ? '#025F30' : '#f3f4f6' }} className="flex-1 py-2 rounded-lg items-center">
+                        <Text style={{ color: costTypeVal === 3 ? '#fff' : '#4b5563' }} className="text-xs font-medium">Other</Text>
+                      </Pressable>
                     </View>
                   </View>
                 </View>

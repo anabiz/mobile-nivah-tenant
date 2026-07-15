@@ -55,11 +55,11 @@ export default function MyInvoicesScreen() {
     <SafeAreaView className="flex-1 bg-[#e8f5f0]" edges={['bottom']}>
       {/* Tabs */}
       <View className="flex-row bg-white border-b border-gray-200 px-4 pt-2">
-        <Pressable onPress={() => setTab('rent')} className={`flex-1 items-center py-3 ${tab === 'rent' ? 'border-b-2 border-brand' : ''}`}>
-          <Text className={`text-sm ${tab === 'rent' ? 'font-medium text-brand' : 'text-gray-500'}`}>Rent ({rentInvoices.length})</Text>
+        <Pressable onPress={() => setTab('rent')} className="flex-1 items-center py-3" style={{ borderBottomWidth: tab === 'rent' ? 2 : 0, borderBottomColor: '#025F30' }}>
+          <Text style={{ color: tab === 'rent' ? '#025F30' : '#6b7280', fontWeight: tab === 'rent' ? '500' : '400' }} className="text-sm">Rent ({rentInvoices.length})</Text>
         </Pressable>
-        <Pressable onPress={() => setTab('maintenance')} className={`flex-1 items-center py-3 ${tab === 'maintenance' ? 'border-b-2 border-brand' : ''}`}>
-          <Text className={`text-sm ${tab === 'maintenance' ? 'font-medium text-brand' : 'text-gray-500'}`}>Maintenance ({maintenanceInvoices.length})</Text>
+        <Pressable onPress={() => setTab('maintenance')} className="flex-1 items-center py-3" style={{ borderBottomWidth: tab === 'maintenance' ? 2 : 0, borderBottomColor: '#025F30' }}>
+          <Text style={{ color: tab === 'maintenance' ? '#025F30' : '#6b7280', fontWeight: tab === 'maintenance' ? '500' : '400' }} className="text-sm">Maintenance ({maintenanceInvoices.length})</Text>
         </Pressable>
       </View>
 
