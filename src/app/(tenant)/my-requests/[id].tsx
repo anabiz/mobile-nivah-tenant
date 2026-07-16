@@ -41,6 +41,7 @@ export default function RequestDetailScreen() {
   const [isSendingComment, setIsSendingComment] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [verifyFeedback, setVerifyFeedback] = useState('');
+  const [verifyRating, setVerifyRating] = useState(0);
   const [isVerifying, setIsVerifying] = useState(false);
 
   const load = useCallback(async () => {
@@ -94,11 +95,16 @@ export default function RequestDetailScreen() {
   }
 
   async function handleVerify(approved: boolean) {
+    if (approved && verifyRating === 0) {
+      toast.error('Select a rating before approving');
+      return;
+    }
     setIsVerifying(true);
     try {
-      await maintenanceService.verify(id, { approved, feedback: verifyFeedback || undefined });
+      await maintenanceService.verify(id, { approved, feedback: verifyFeedback || undefined, rating: approved ? verifyRating : undefined });
       toast.success(approved ? 'Request approved & closed' : 'Sent back for rework');
       setVerifyFeedback('');
+      setVerifyRating(0);
       load();
     } catch (err) {
       toast.error(apiErrorMessage(err, 'Failed to verify'));
@@ -160,6 +166,14 @@ export default function RequestDetailScreen() {
         {canVerify && (
           <Card className="gap-2 border-indigo-200 bg-indigo-50">
             <Text className="text-sm font-medium text-indigo-900">Awaiting Your Verification</Text>
+            <Text className="text-xs font-medium text-indigo-900">Rating (required to approve)</Text>
+            <View className="flex-row gap-1">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <Pressable key={n} onPress={() => setVerifyRating(n)}>
+                  <Text style={{ fontSize: 24, color: n <= verifyRating ? '#fbbf24' : '#d1d5db' }}>★</Text>
+                </Pressable>
+              ))}
+            </View>
             <FormInput placeholder="Feedback (optional)" value={verifyFeedback} onChangeText={setVerifyFeedback} multiline />
             <View className="flex-row gap-2">
               <Button label="Approve" onPress={() => handleVerify(true)} loading={isVerifying} className="flex-1" />

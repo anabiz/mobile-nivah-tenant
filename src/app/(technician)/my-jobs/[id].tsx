@@ -39,12 +39,11 @@ export default function JobDetailScreen() {
   const [comments, setComments] = useState<MaintenanceCommentDto[]>([]);
   const [tab, setTab] = useState<Tab>('details');
 
-  const [isStarting, setIsStarting] = useState(false);
-
   const [showInvestigation, setShowInvestigation] = useState(false);
   const [rootCause, setRootCause] = useState('');
   const [recommendations, setRecommendations] = useState('');
   const [materialsRequired, setMaterialsRequired] = useState('');
+  const [estimatedCompletionHours, setEstimatedCompletionHours] = useState('');
   const [investigationFile, setInvestigationFile] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [isSubmittingInvestigation, setIsSubmittingInvestigation] = useState(false);
 
@@ -100,32 +99,25 @@ export default function JobDetailScreen() {
     if (!result.canceled && result.assets[0]) onPicked(result.assets[0]);
   }
 
-  async function handleStartWork() {
-    setIsStarting(true);
-    try {
-      await maintenanceService.updateStatus(id, 3);
-      toast.success('Marked as In Progress');
-      load();
-    } catch (err) {
-      toast.error(apiErrorMessage(err, 'Failed to update status'));
-    } finally {
-      setIsStarting(false);
-    }
-  }
-
   async function handleSubmitInvestigation() {
+    const hours = parseInt(estimatedCompletionHours, 10);
+    if (!hours || hours <= 0) {
+      toast.error('Enter an estimated completion time in hours');
+      return;
+    }
     setIsSubmittingInvestigation(true);
     try {
       const file = investigationFile ? await toRNFile(investigationFile) : undefined;
       await maintenanceService.submitInvestigation(
         id,
-        { rootCause: rootCause || undefined, recommendations: recommendations || undefined, materialsRequired: materialsRequired || undefined },
+        { rootCause: rootCause || undefined, recommendations: recommendations || undefined, materialsRequired: materialsRequired || undefined, estimatedCompletionHours: hours },
         file,
       );
-      toast.success('Investigation submitted');
+      toast.success('Investigation submitted, awaiting manager review');
       setRootCause('');
       setRecommendations('');
       setMaterialsRequired('');
+      setEstimatedCompletionHours('');
       setInvestigationFile(null);
       setShowInvestigation(false);
       load();
@@ -196,9 +188,10 @@ export default function JobDetailScreen() {
   if (isLoading && !job) return <LoadingState />;
   if (!job) return <LoadingState label="Job not found" />;
 
-  const canStartWork = job.status === 2 || job.status === 9;
-  const canDoFieldWork = job.status === 3;
-  const costDisabled = job.status === 7 || job.status === 10;
+  const canInvestigate = job.status === 2 || job.status === 9;
+  const canDoFieldWork = job.status === 5 || job.status === 9;
+  // Cost items can only be added up through Manager Review (1-3), or again while reworking (9)
+  const costDisabled = !(job.status <= 3 || job.status === 9);
 
   return (
     <SafeAreaView className="flex-1 bg-[#e8f5f0]" edges={['bottom']}>
@@ -220,8 +213,6 @@ export default function JobDetailScreen() {
       </View>
 
       <ScrollView contentContainerClassName="gap-4 p-4">
-        {canStartWork && <Button label={isStarting ? 'Updating...' : 'Start Work'} onPress={handleStartWork} loading={isStarting} />}
-
         {tab === 'details' && (
           <>
             <Card className="gap-1.5">
@@ -247,7 +238,7 @@ export default function JobDetailScreen() {
               </Card>
             )}
 
-            {canDoFieldWork && (
+            {canInvestigate && (
               <Card className="gap-3">
                 <Text className="text-sm font-medium text-gray-900">Submit Investigation</Text>
                 {showInvestigation ? (
@@ -255,6 +246,7 @@ export default function JobDetailScreen() {
                     <FormInput placeholder="Root cause" value={rootCause} onChangeText={setRootCause} multiline />
                     <FormInput placeholder="Recommendations" value={recommendations} onChangeText={setRecommendations} multiline />
                     <FormInput placeholder="Materials required (optional)" value={materialsRequired} onChangeText={setMaterialsRequired} multiline />
+                    <FormInput placeholder="Estimated completion time (hours)" value={estimatedCompletionHours} onChangeText={setEstimatedCompletionHours} keyboardType="numeric" />
                     {investigationFile ? (
                       <Image source={{ uri: investigationFile.uri }} className="h-24 w-24 rounded-lg" />
                     ) : (

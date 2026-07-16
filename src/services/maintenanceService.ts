@@ -24,6 +24,7 @@ export interface MaintenanceRequestDto {
   totalCost: number;
   resolvedAt?: string | null;
   closedAt?: string | null;
+  estimatedCompletionAt?: string | null;
   costsFinalized?: boolean;
   createdAt: string;
   slaResolutionDueAt?: string | null;
@@ -42,6 +43,8 @@ export interface CreateMaintenanceRequestData {
 export interface VerifyRequestData {
   approved: boolean;
   feedback?: string;
+  // Required when approved === true — 1-5 rating of whoever did the work.
+  rating?: number;
 }
 
 export interface MaintenanceCategoryDto {
@@ -139,12 +142,12 @@ export const PRIORITY_COLORS: Record<number, string> = {
   4: 'bg-red-100 text-red-700',
 };
 export const STATUS_LABELS: Record<number, string> = {
-  1: 'New',
-  2: 'Assigned',
-  3: 'In Progress',
-  4: 'Pending Approval',
-  5: 'Pending Materials',
-  6: 'Awaiting Verification',
+  1: 'Awaiting Assignment',
+  2: 'Awaiting Investigation',
+  3: 'Manager Review',
+  4: 'Awaiting Payment',
+  5: 'In Progress',
+  6: 'Awaiting Tenant Confirmation',
   7: 'Completed',
   8: 'Rejected',
   9: 'Rework Required',
@@ -155,7 +158,7 @@ export const STATUS_COLORS: Record<number, string> = {
   2: 'bg-purple-100 text-purple-700',
   3: 'bg-yellow-100 text-yellow-700',
   4: 'bg-orange-100 text-orange-700',
-  5: 'bg-gray-100 text-gray-700',
+  5: 'bg-cyan-100 text-cyan-700',
   6: 'bg-indigo-100 text-indigo-700',
   7: 'bg-green-100 text-green-700',
   8: 'bg-red-100 text-red-700',
@@ -292,20 +295,16 @@ export const maintenanceService = {
   },
 
   // Technician methods
-  async updateStatus(id: string, status: number): Promise<ApiResponse<MaintenanceRequestDto>> {
-    const response = await apiClient.put<ApiResponse<MaintenanceRequestDto>>(`/api/v1/MaintenanceRequest/${id}/status`, { status });
-    return response.data;
-  },
-
   async submitInvestigation(
     id: string,
-    data: { rootCause?: string; recommendations?: string; materialsRequired?: string },
+    data: { rootCause?: string; recommendations?: string; materialsRequired?: string; estimatedCompletionHours: number },
     file?: RNFile,
   ): Promise<ApiResponse<MaintenanceRequestDto>> {
     const formData = new FormData();
     if (data.rootCause) formData.append('RootCause', data.rootCause);
     if (data.recommendations) formData.append('Recommendations', data.recommendations);
     if (data.materialsRequired) formData.append('MaterialsRequired', data.materialsRequired);
+    formData.append('EstimatedCompletionHours', String(data.estimatedCompletionHours));
     if (file) toFormData(file, 'file', formData);
     const response = await apiClient.put<ApiResponse<MaintenanceRequestDto>>(`/api/v1/MaintenanceRequest/${id}/investigation`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },

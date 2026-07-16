@@ -20,8 +20,8 @@ import {
 
 const FILTER_TABS: { label: string; status?: number }[] = [
   { label: 'All' },
-  { label: 'Assigned', status: 2 },
-  { label: 'In Progress', status: 3 },
+  { label: 'Awaiting Investigation', status: 2 },
+  { label: 'In Progress', status: 5 },
   { label: 'Rework', status: 9 },
   { label: 'Completed', status: 7 },
 ];
@@ -51,7 +51,7 @@ export default function MyJobsScreen() {
   const stats = useMemo(
     () => ({
       assigned: jobs.filter((j) => j.status === 2).length,
-      inProgress: jobs.filter((j) => j.status === 3).length,
+      inProgress: jobs.filter((j) => j.status === 5).length,
       awaitingVerification: jobs.filter((j) => j.status === 6).length,
       completed: jobs.filter((j) => j.status === 7).length,
     }),
@@ -69,9 +69,9 @@ export default function MyJobsScreen() {
         <Text className="text-xl font-semibold text-[#025F30]">My Jobs</Text>
 
         <View className="flex-row flex-wrap gap-3">
-          <StatTile label="Assigned" value={stats.assigned} />
+          <StatTile label="Awaiting Investigation" value={stats.assigned} />
           <StatTile label="In Progress" value={stats.inProgress} />
-          <StatTile label="Awaiting Verification" value={stats.awaitingVerification} />
+          <StatTile label="Awaiting Confirmation" value={stats.awaitingVerification} />
           <StatTile label="Completed" value={stats.completed} />
         </View>
 
