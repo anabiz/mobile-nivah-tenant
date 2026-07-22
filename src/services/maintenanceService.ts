@@ -82,6 +82,28 @@ export interface MaintenanceCommentDto {
   createdAt: string;
 }
 
+export interface TimelineActorDto {
+  userId: string;
+  userName: string;
+}
+
+export interface TimelineStageDto {
+  stage: number;
+  timelineState: 'Passed' | 'Current' | 'Upcoming';
+  enteredAt?: string | null;
+  exitedAt?: string | null;
+  attendedBy: TimelineActorDto[];
+  responsibleUsers: TimelineActorDto[];
+  exitNotes?: string | null;
+  slaDeadlineAt?: string | null;
+}
+
+export interface MaintenanceRequestTimelineDto {
+  maintenanceRequestId: string;
+  currentStatus: number;
+  stages: TimelineStageDto[];
+}
+
 export interface MaintenanceCostItemDto {
   id: string;
   maintenanceRequestId: string;
@@ -291,6 +313,11 @@ export const maintenanceService = {
 
   async getComments(id: string): Promise<ApiResponse<MaintenanceCommentDto[]>> {
     const response = await apiClient.get<ApiResponse<MaintenanceCommentDto[]>>(`/api/v1/MaintenanceRequest/${id}/comments`);
+    return response.data;
+  },
+
+  async getTimeline(id: string): Promise<ApiResponse<MaintenanceRequestTimelineDto>> {
+    const response = await apiClient.get<ApiResponse<MaintenanceRequestTimelineDto>>(`/api/v1/MaintenanceRequest/${id}/timeline`);
     return response.data;
   },
 

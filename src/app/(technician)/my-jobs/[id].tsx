@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { FormInput } from '@/components/ui/FormInput';
 import { LoadingState } from '@/components/ui/LoadingState';
+import { MaintenanceTimeline } from '@/components/MaintenanceTimeline';
 import { apiErrorMessage } from '@/lib/api';
 import { formatDateTime, formatNaira } from '@/lib/format';
 import { toast } from '@/lib/toast';
@@ -24,10 +25,12 @@ import {
   RNFile,
   STATUS_COLORS,
   STATUS_LABELS,
+  TimelineStageDto,
+  getSlaStatus,
   maintenanceService,
 } from '@/services/maintenanceService';
 
-type Tab = 'details' | 'costs' | 'comments';
+type Tab = 'details' | 'timeline' | 'costs' | 'comments';
 
 export default function JobDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -37,6 +40,7 @@ export default function JobDetailScreen() {
   const [attachments, setAttachments] = useState<AttachmentDto[]>([]);
   const [costItems, setCostItems] = useState<MaintenanceCostItemDto[]>([]);
   const [comments, setComments] = useState<MaintenanceCommentDto[]>([]);
+  const [timelineStages, setTimelineStages] = useState<TimelineStageDto[]>([]);
   const [tab, setTab] = useState<Tab>('details');
 
   const [showInvestigation, setShowInvestigation] = useState(false);
@@ -66,14 +70,16 @@ export default function JobDetailScreen() {
     try {
       const res = await maintenanceService.getById(id);
       if (res.success) setJob(res.data);
-      const [attachmentsRes, costRes, commentsRes] = await Promise.all([
+      const [attachmentsRes, costRes, commentsRes, timelineRes] = await Promise.all([
         maintenanceService.getAttachments(id),
         maintenanceService.getCostItems(id),
         maintenanceService.getComments(id),
+        maintenanceService.getTimeline(id),
       ]);
       if (attachmentsRes.success) setAttachments(attachmentsRes.data);
       if (costRes.success) setCostItems(costRes.data);
       if (commentsRes.success) setComments(commentsRes.data);
+      if (timelineRes.success) setTimelineStages(timelineRes.data.stages || []);
     } finally {
       setIsLoading(false);
     }
@@ -205,7 +211,7 @@ export default function JobDetailScreen() {
       </View>
 
       <View className="flex-row border-b border-gray-200 bg-white">
-        {(['details', 'costs', 'comments'] as Tab[]).map((t) => (
+        {(['details', 'timeline', 'costs', 'comments'] as Tab[]).map((t) => (
           <Pressable key={t} onPress={() => setTab(t)} className="flex-1 items-center py-3" style={{ borderBottomWidth: tab === t ? 2 : 0, borderBottomColor: '#025F30' }}>
             <Text style={{ color: tab === t ? '#025F30' : '#6b7280', fontWeight: tab === t ? '500' : '400' }} className="text-sm capitalize">{t}</Text>
           </Pressable>
@@ -294,6 +300,16 @@ export default function JobDetailScreen() {
               </Card>
             )}
           </>
+        )}
+
+        {tab === 'timeline' && (
+          <Card>
+            {timelineStages.length === 0 ? (
+              <Text className="text-sm text-gray-500">No timeline available.</Text>
+            ) : (
+              <MaintenanceTimeline stages={timelineStages} sla={getSlaStatus(job)} slaResolutionDueAt={job.slaResolutionDueAt} />
+            )}
+          </Card>
         )}
 
         {tab === 'costs' && (
